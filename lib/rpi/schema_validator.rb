@@ -119,7 +119,10 @@ module Rpi
     def coerce_type(type, value)
       case type.to_s
       when "string"
-        value.is_a?(String) ? value : value.to_s
+        return value if value.is_a?(String)
+        return value.to_s if value.is_a?(Numeric) || value == true || value == false || value.is_a?(Symbol)
+
+        value
       when "integer"
         return value if value.is_a?(Integer)
         return value.to_i if value.is_a?(String) && value.match?(/\A-?\d+\z/)

@@ -290,34 +290,47 @@ module Rpi
     end
 
     def execute_tool_calls_parallel(current_context, assistant_message, tool_calls)
-      results = []
+      outcomes = Array.new(tool_calls.length)
       runnable_calls = []
 
-      tool_calls.each do |tool_call|
+      tool_calls.each_with_index do |tool_call, index|
         emit_tool_execution_start(tool_call)
         preparation = prepare_tool_call(current_context, assistant_message, tool_call)
         if preparation[:kind] == :immediate
-          results << emit_tool_call_outcome(tool_call, preparation[:result], preparation[:is_error])
+          outcomes[index] = {
+            tool_call: tool_call,
+            result: preparation[:result],
+            is_error: preparation[:is_error]
+          }
         else
-          runnable_calls << preparation
+          runnable_calls << { index: index, prepared: preparation }
         end
       end
 
-      running_calls = runnable_calls.map do |prepared|
+      running_calls = runnable_calls.map do |call|
         queue = Queue.new
         thread = Thread.new do
-          queue << execute_prepared_tool_call(prepared)
+          queue << execute_prepared_tool_call(call[:prepared])
         end
-        { prepared: prepared, queue: queue, thread: thread }
+        call.merge(queue: queue, thread: thread)
       end
 
       running_calls.each do |running|
         executed = running[:queue].pop
         running[:thread].join
-        results << finalize_executed_tool_call(current_context, assistant_message, running[:prepared], executed)
+        outcomes[running[:index]] = {
+          prepared: running[:prepared],
+          executed: executed
+        }
       end
 
-      results
+      outcomes.map do |outcome|
+        if outcome[:prepared]
+          finalize_executed_tool_call(current_context, assistant_message, outcome[:prepared], outcome[:executed])
+        else
+          emit_tool_call_outcome(outcome[:tool_call], outcome[:result], outcome[:is_error])
+        end
+      end
     end
 
     def emit_tool_execution_start(tool_call)

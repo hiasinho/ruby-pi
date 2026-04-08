@@ -206,3 +206,100 @@ class AgentTest < Minitest::Test
     assert_nil agent.last_error
   end
 end
+
+class OrderedParallelProvider
+  def stream(model:, context:, options:, cancellation:)
+    stream = Rpi::Stream.new
+
+    Thread.new do
+      cancellation.raise_if_cancelled!
+      last_message = context[:messages].last
+
+      if last_message[:role] == :user
+        assistant = Rpi::Messages.assistant(
+          content: [
+            Rpi::Messages.tool_call(id: "call-1", name: "ok", arguments: {}),
+            Rpi::Messages.tool_call(id: "call-2", name: "missing", arguments: {})
+          ],
+          api: model[:api],
+          provider: model[:provider],
+          model: model[:id],
+          stop_reason: :tool_use
+        )
+      else
+        assistant = Rpi::Messages.assistant(
+          content: [Rpi::Messages.text("done")],
+          api: model[:api],
+          provider: model[:provider],
+          model: model[:id],
+          stop_reason: :stop
+        )
+      end
+
+      stream.push(type: :start, partial: assistant)
+      stream.push(type: :done, message: assistant)
+      stream.close(assistant)
+    end
+
+    stream
+  end
+end
+
+class ToolTest < Minitest::Test
+  def test_keyword_executor_accepts_subset_of_supported_keywords
+    tool = Rpi::Tool.define(name: "echo", description: "Echo args") do |arguments:|
+      { content: [Rpi::Messages.text(arguments["value"])], details: {} }
+    end
+
+    result = tool.call(
+      tool_call_id: "call-1",
+      arguments: { "value" => "ok" },
+      cancellation: Rpi::Cancellation::Source.new.token
+    )
+
+    assert_equal "ok", result[:content].first[:text]
+  end
+end
+
+class SchemaValidatorTest < Minitest::Test
+  def test_string_fields_do_not_coerce_hashes
+    error = assert_raises(Rpi::SchemaValidator::ValidationError) do
+      Rpi::SchemaValidator.validate!(
+        {
+          type: "object",
+          properties: {
+            query: { type: "string" }
+          },
+          required: ["query"],
+          additionalProperties: false
+        },
+        { "query" => { "bad" => 1 } }
+      )
+    end
+
+    assert_includes error.message, "$.query must be a string"
+  end
+end
+
+class AgentParallelOrderingTest < Minitest::Test
+  def test_parallel_tool_results_preserve_tool_call_order
+    registry = Rpi::ProviderRegistry.new
+    registry.register(:fake, OrderedParallelProvider.new)
+    model = Rpi.model(id: "fake-1", provider: "spec", api: :fake)
+    tool = Rpi::Tool.define(name: "ok", description: "OK") do
+      sleep 0.05
+      { content: [Rpi::Messages.text("ok")], details: {} }
+    end
+
+    agent = Rpi::Agent.new(
+      model: model,
+      tools: [tool],
+      provider_registry: registry
+    )
+
+    agent.prompt("run")
+
+    tool_results = agent.messages.select { |message| message[:role] == :tool_result }
+    assert_equal ["ok", "missing"], tool_results.map { |message| message[:tool_name] }
+  end
+end

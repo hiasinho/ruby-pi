@@ -31,12 +31,21 @@ module Rpi
 
     def call(tool_call_id:, arguments:, cancellation:, &on_update)
       if keyword_executor?
-        @executor.call(
+        kwargs = {
           tool_call_id: tool_call_id,
           arguments: arguments,
           cancellation: cancellation,
           on_update: on_update
-        )
+        }
+
+        unless @executor.parameters.any? { |kind, _| kind == :keyrest }
+          allowed_keywords = @executor.parameters.filter_map do |kind, name|
+            name if [:key, :keyreq].include?(kind)
+          end
+          kwargs.select! { |key, _| allowed_keywords.include?(key) }
+        end
+
+        @executor.call(**kwargs)
       else
         case @executor.arity
         when 0
