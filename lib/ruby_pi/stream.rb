@@ -2,7 +2,7 @@
 
 require "thread"
 
-module Rpi
+module RubyPi
   class Stream
     include Enumerable
 

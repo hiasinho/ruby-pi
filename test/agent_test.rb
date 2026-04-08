@@ -4,7 +4,7 @@ require_relative "test_helper"
 
 class FakeProvider
   def stream(model:, context:, options:, cancellation:)
-    stream = Rpi::Stream.new
+    stream = RubyPi::Stream.new
 
     Thread.new do
       begin
@@ -19,9 +19,9 @@ class FakeProvider
         else
           emit_plain_answer(stream, model, "done")
         end
-      rescue Rpi::Cancellation::Cancelled => error
-        aborted = Rpi::Messages.assistant(
-          content: [Rpi::Messages.text("")],
+      rescue RubyPi::Cancellation::Cancelled => error
+        aborted = RubyPi::Messages.assistant(
+          content: [RubyPi::Messages.text("")],
           api: model[:api],
           provider: model[:provider],
           model: model[:id],
@@ -41,8 +41,8 @@ class FakeProvider
   def emit_tool_request(stream, model, user_message)
     text = user_message[:content].map { |part| part[:text] }.join(" ")
     value = text[/double\s+(\d+)/, 1].to_i
-    tool_call = Rpi::Messages.tool_call(id: "call-#{value}", name: "double", arguments: { "value" => value })
-    assistant = Rpi::Messages.assistant(
+    tool_call = RubyPi::Messages.tool_call(id: "call-#{value}", name: "double", arguments: { "value" => value })
+    assistant = RubyPi::Messages.assistant(
       content: [tool_call],
       api: model[:api],
       provider: model[:provider],
@@ -59,15 +59,15 @@ class FakeProvider
 
   def emit_final_answer(stream, model, tool_result)
     final_text = "Result: #{tool_result[:content].first[:text]}"
-    partial = Rpi::Messages.assistant(
-      content: [Rpi::Messages.text("")],
+    partial = RubyPi::Messages.assistant(
+      content: [RubyPi::Messages.text("")],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
       stop_reason: :stop
     )
-    final = Rpi::Messages.assistant(
-      content: [Rpi::Messages.text(final_text)],
+    final = RubyPi::Messages.assistant(
+      content: [RubyPi::Messages.text(final_text)],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
@@ -81,8 +81,8 @@ class FakeProvider
   end
 
   def emit_plain_answer(stream, model, text)
-    final = Rpi::Messages.assistant(
-      content: [Rpi::Messages.text(text)],
+    final = RubyPi::Messages.assistant(
+      content: [RubyPi::Messages.text(text)],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
@@ -97,13 +97,13 @@ end
 
 class AgentTest < Minitest::Test
   def setup
-    @registry = Rpi::ProviderRegistry.new
+    @registry = RubyPi::ProviderRegistry.new
     @registry.register(:fake, FakeProvider.new)
-    @model = Rpi.model(id: "fake-1", provider: "spec", api: :fake)
+    @model = RubyPi.model(id: "fake-1", provider: "spec", api: :fake)
   end
 
   def build_agent(tool: default_tool, **options)
-    Rpi::Agent.new(
+    RubyPi::Agent.new(
       model: @model,
       system_prompt: "You are helpful.",
       tools: [tool],
@@ -113,7 +113,7 @@ class AgentTest < Minitest::Test
   end
 
   def default_tool
-    Rpi::Tool.define(
+    RubyPi::Tool.define(
       name: "double",
       description: "Double a number",
       schema: {
@@ -127,7 +127,7 @@ class AgentTest < Minitest::Test
     ) do |arguments, _cancellation|
       sleep 0.05
       {
-        content: [Rpi::Messages.text((arguments["value"] * 2).to_s)],
+        content: [RubyPi::Messages.text((arguments["value"] * 2).to_s)],
         details: { doubled: arguments["value"] * 2 }
       }
     end
@@ -170,7 +170,7 @@ class AgentTest < Minitest::Test
       },
       after_tool_call: lambda { |_context, _token|
         {
-          content: [Rpi::Messages.text("override")],
+          content: [RubyPi::Messages.text("override")],
           details: { overridden: true },
           is_error: false
         }
@@ -209,17 +209,17 @@ end
 
 class OrderedParallelProvider
   def stream(model:, context:, options:, cancellation:)
-    stream = Rpi::Stream.new
+    stream = RubyPi::Stream.new
 
     Thread.new do
       cancellation.raise_if_cancelled!
       last_message = context[:messages].last
 
       if last_message[:role] == :user
-        assistant = Rpi::Messages.assistant(
+        assistant = RubyPi::Messages.assistant(
           content: [
-            Rpi::Messages.tool_call(id: "call-1", name: "ok", arguments: {}),
-            Rpi::Messages.tool_call(id: "call-2", name: "missing", arguments: {})
+            RubyPi::Messages.tool_call(id: "call-1", name: "ok", arguments: {}),
+            RubyPi::Messages.tool_call(id: "call-2", name: "missing", arguments: {})
           ],
           api: model[:api],
           provider: model[:provider],
@@ -227,8 +227,8 @@ class OrderedParallelProvider
           stop_reason: :tool_use
         )
       else
-        assistant = Rpi::Messages.assistant(
-          content: [Rpi::Messages.text("done")],
+        assistant = RubyPi::Messages.assistant(
+          content: [RubyPi::Messages.text("done")],
           api: model[:api],
           provider: model[:provider],
           model: model[:id],
@@ -247,14 +247,14 @@ end
 
 class ToolTest < Minitest::Test
   def test_keyword_executor_accepts_subset_of_supported_keywords
-    tool = Rpi::Tool.define(name: "echo", description: "Echo args") do |arguments:|
-      { content: [Rpi::Messages.text(arguments["value"])], details: {} }
+    tool = RubyPi::Tool.define(name: "echo", description: "Echo args") do |arguments:|
+      { content: [RubyPi::Messages.text(arguments["value"])], details: {} }
     end
 
     result = tool.call(
       tool_call_id: "call-1",
       arguments: { "value" => "ok" },
-      cancellation: Rpi::Cancellation::Source.new.token
+      cancellation: RubyPi::Cancellation::Source.new.token
     )
 
     assert_equal "ok", result[:content].first[:text]
@@ -263,8 +263,8 @@ end
 
 class SchemaValidatorTest < Minitest::Test
   def test_string_fields_do_not_coerce_hashes
-    error = assert_raises(Rpi::SchemaValidator::ValidationError) do
-      Rpi::SchemaValidator.validate!(
+    error = assert_raises(RubyPi::SchemaValidator::ValidationError) do
+      RubyPi::SchemaValidator.validate!(
         {
           type: "object",
           properties: {
@@ -283,15 +283,15 @@ end
 
 class AgentParallelOrderingTest < Minitest::Test
   def test_parallel_tool_results_preserve_tool_call_order
-    registry = Rpi::ProviderRegistry.new
+    registry = RubyPi::ProviderRegistry.new
     registry.register(:fake, OrderedParallelProvider.new)
-    model = Rpi.model(id: "fake-1", provider: "spec", api: :fake)
-    tool = Rpi::Tool.define(name: "ok", description: "OK") do
+    model = RubyPi.model(id: "fake-1", provider: "spec", api: :fake)
+    tool = RubyPi::Tool.define(name: "ok", description: "OK") do
       sleep 0.05
-      { content: [Rpi::Messages.text("ok")], details: {} }
+      { content: [RubyPi::Messages.text("ok")], details: {} }
     end
 
-    agent = Rpi::Agent.new(
+    agent = RubyPi::Agent.new(
       model: model,
       tools: [tool],
       provider_registry: registry

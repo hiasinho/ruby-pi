@@ -2,7 +2,7 @@
 
 require "thread"
 
-module Rpi
+module RubyPi
   class ModelRegistry
     def initialize
       @mutex = Mutex.new
@@ -40,6 +40,21 @@ module Rpi
       model.dup.tap do |copy|
         copy[:provider] = copy[:provider].to_s
         copy[:api] = copy[:api].to_sym
+        copy[:headers] = Messages.deep_copy(copy[:headers]) if copy.key?(:headers)
+        copy[:compat] = symbolize_keys(Messages.deep_copy(copy[:compat] || {}))
+      end
+    end
+
+    def symbolize_keys(object)
+      case object
+      when Hash
+        object.each_with_object({}) do |(key, value), copy|
+          copy[key.respond_to?(:to_sym) ? key.to_sym : key] = symbolize_keys(value)
+        end
+      when Array
+        object.map { |value| symbolize_keys(value) }
+      else
+        object
       end
     end
   end

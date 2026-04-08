@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Rpi
+module RubyPi
   class Tool
     attr_reader :name, :label, :description, :schema
 

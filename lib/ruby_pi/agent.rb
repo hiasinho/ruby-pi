@@ -3,7 +3,7 @@
 require "set"
 require "thread"
 
-module Rpi
+module RubyPi
   class Agent
     class PendingMessageQueue
       attr_accessor :mode
@@ -77,7 +77,7 @@ module Rpi
       @stream = stream
       @stream_options = stream_options
       @metadata = metadata
-      @provider_registry = provider_registry || Rpi.providers
+      @provider_registry = provider_registry || RubyPi.providers
       @streaming_message = nil
       @pending_tool_calls = Set.new
       @last_error = nil

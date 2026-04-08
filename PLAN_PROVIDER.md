@@ -36,14 +36,14 @@ Examples from pi:
 
 Already present:
 
-- `lib/rpi/agent_loop.rb`
-- `lib/rpi/agent.rb`
-- `lib/rpi/messages.rb`
-- `lib/rpi/tool.rb`
-- `lib/rpi/provider_registry.rb`
-- `lib/rpi/model_registry.rb`
-- `lib/rpi/stream.rb`
-- `lib/rpi/cancellation.rb`
+- `lib/ruby_pi/agent_loop.rb`
+- `lib/ruby_pi/agent.rb`
+- `lib/ruby_pi/messages.rb`
+- `lib/ruby_pi/tool.rb`
+- `lib/ruby_pi/provider_registry.rb`
+- `lib/ruby_pi/model_registry.rb`
+- `lib/ruby_pi/stream.rb`
+- `lib/ruby_pi/cancellation.rb`
 
 Missing for real provider support:
 
@@ -68,12 +68,12 @@ Missing for real provider support:
 
 Create:
 
-- `lib/rpi/providers/base.rb`
+- `lib/ruby_pi/providers/base.rb`
 
 Define the contract every adapter must implement:
 
 ```ruby
-module Rpi
+module RubyPi
   module Providers
     class Base
       def stream(model:, context:, options:, cancellation:)
@@ -117,12 +117,12 @@ Also document final assistant message expectations:
 
 Create:
 
-- `lib/rpi/http/client.rb`
-- `lib/rpi/http/sse_parser.rb`
+- `lib/ruby_pi/http/client.rb`
+- `lib/ruby_pi/http/sse_parser.rb`
 
 Responsibilities:
 
-### `Rpi::Http::Client`
+### `RubyPi::Http::Client`
 
 - perform POST requests
 - support streaming responses
@@ -137,7 +137,7 @@ If possible, start with standard library only:
 
 If that becomes too painful, use one gem later.
 
-### `Rpi::Http::SseParser`
+### `RubyPi::Http::SseParser`
 
 - read `data:` lines
 - accumulate event payloads
@@ -149,7 +149,7 @@ If that becomes too painful, use one gem later.
 
 Create:
 
-- `lib/rpi/providers/openai_completions.rb`
+- `lib/ruby_pi/providers/openai_completions.rb`
 
 Register under:
 
@@ -261,7 +261,7 @@ Examples where this helps:
 
 Create:
 
-- `lib/rpi/auth.rb`
+- `lib/ruby_pi/auth.rb`
 
 Responsibilities:
 
@@ -290,16 +290,16 @@ Initial env mapping:
 
 Create:
 
-- `lib/rpi/providers.rb`
-- `lib/rpi/models/defaults.rb`
+- `lib/ruby_pi/providers.rb`
+- `lib/ruby_pi/models/defaults.rb`
 
-### `lib/rpi/providers.rb`
+### `lib/ruby_pi/providers.rb`
 
 Register built-ins:
 
 - `:openai_completions`
 
-### `lib/rpi/models/defaults.rb`
+### `lib/ruby_pi/models/defaults.rb`
 
 Add a small initial catalog:
 
@@ -348,7 +348,7 @@ Required test cases:
 
 After `openai_completions` works, add:
 
-- `lib/rpi/providers/openai_responses.rb`
+- `lib/ruby_pi/providers/openai_responses.rb`
 
 Register under:
 
@@ -361,7 +361,7 @@ Do this only after the completions adapter and tests are solid.
 
 Create:
 
-- `lib/rpi/message_transformer.rb`
+- `lib/ruby_pi/message_transformer.rb`
 
 Responsibilities:
 
@@ -376,14 +376,14 @@ This matters once sessions can switch between providers mid-conversation.
 
 ### New files
 
-- `lib/rpi/providers/base.rb`
-- `lib/rpi/providers/openai_completions.rb`
-- `lib/rpi/providers.rb`
-- `lib/rpi/http/client.rb`
-- `lib/rpi/http/sse_parser.rb`
-- `lib/rpi/auth.rb`
-- `lib/rpi/models/defaults.rb`
-- `lib/rpi/message_transformer.rb`
+- `lib/ruby_pi/providers/base.rb`
+- `lib/ruby_pi/providers/openai_completions.rb`
+- `lib/ruby_pi/providers.rb`
+- `lib/ruby_pi/http/client.rb`
+- `lib/ruby_pi/http/sse_parser.rb`
+- `lib/ruby_pi/auth.rb`
+- `lib/ruby_pi/models/defaults.rb`
+- `lib/ruby_pi/message_transformer.rb`
 - `test/openai_completions_adapter_test.rb`
 - `test/sse_parser_test.rb`
 - `test/http_client_test.rb`
@@ -393,11 +393,11 @@ This matters once sessions can switch between providers mid-conversation.
 - `lib/rpi.rb`
   - require provider/auth/http files
   - call built-in provider registration
-- `lib/rpi/model_registry.rb`
+- `lib/ruby_pi/model_registry.rb`
   - support compat metadata cleanly
-- `lib/rpi/provider_registry.rb`
+- `lib/ruby_pi/provider_registry.rb`
   - maybe add lazy registration helpers later
-- `lib/rpi/agent_loop.rb`
+- `lib/ruby_pi/agent_loop.rb`
   - optionally add message transformation hook before provider call
 
 ## Recommended order of execution
@@ -428,9 +428,9 @@ This matters once sessions can switch between providers mid-conversation.
 You should be able to do this in Rails or plain Ruby:
 
 ```ruby
-require "rpi"
+require "ruby_pi"
 
-model = Rpi.model(
+model = RubyPi.model(
   id: "gpt-4o-mini",
   provider: "openai",
   api: :openai_completions,
@@ -441,9 +441,9 @@ model = Rpi.model(
   }
 )
 
-Rpi.register_provider(:openai_completions, Rpi::Providers::OpenAICompletions.new)
+RubyPi.register_provider(:openai_completions, RubyPi::Providers::OpenAICompletions.new)
 
-agent = Rpi.build_agent(
+agent = RubyPi.build_agent(
   model: model,
   system_prompt: "You are helpful.",
   tools: []
@@ -456,7 +456,7 @@ puts agent.messages.last
 Then add another model with the same adapter:
 
 ```ruby
-openrouter_model = Rpi.model(
+openrouter_model = RubyPi.model(
   id: "anthropic/claude-3.7-sonnet",
   provider: "openrouter",
   api: :openai_completions,

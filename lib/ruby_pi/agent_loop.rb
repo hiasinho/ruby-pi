@@ -2,7 +2,7 @@
 
 require "thread"
 
-module Rpi
+module RubyPi
   class AgentLoop
     UPDATE_EVENT_TYPES = [
       :text_start,
@@ -63,7 +63,7 @@ module Rpi
       @config = config
       @emitter = emitter || ->(_event) {}
       @emit_mutex = Mutex.new
-      @provider_registry = config[:provider_registry] || Rpi.providers
+      @provider_registry = config[:provider_registry] || RubyPi.providers
       @cancellation = resolve_cancellation(cancellation)
     end
 
@@ -241,14 +241,15 @@ module Rpi
 
     def stream_provider(llm_context)
       model = @config.fetch(:model)
-      api_key = if @config[:get_api_key]
-                  @config[:get_api_key].call(model[:provider]) || @config[:api_key]
-                else
-                  @config[:api_key]
-                end
+      auth = RubyPi::Auth.resolve(
+        model[:provider],
+        api_key: @config[:api_key],
+        get_api_key: @config[:get_api_key]
+      )
 
       options = {
-        api_key: api_key,
+        api_key: auth[:api_key],
+        auth_headers: auth[:headers],
         reasoning: @config[:reasoning],
         session_id: @config[:session_id],
         metadata: @config[:metadata],

@@ -2,7 +2,7 @@
 
 require "thread"
 
-module Rpi
+module RubyPi
   module Cancellation
     class Cancelled < StandardError; end
 

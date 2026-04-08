@@ -1,16 +1,22 @@
 # frozen_string_literal: true
 
-require_relative "rpi/messages"
-require_relative "rpi/cancellation"
-require_relative "rpi/stream"
-require_relative "rpi/schema_validator"
-require_relative "rpi/tool"
-require_relative "rpi/provider_registry"
-require_relative "rpi/model_registry"
-require_relative "rpi/agent_loop"
-require_relative "rpi/agent"
+require_relative "ruby_pi/messages"
+require_relative "ruby_pi/cancellation"
+require_relative "ruby_pi/stream"
+require_relative "ruby_pi/schema_validator"
+require_relative "ruby_pi/tool"
+require_relative "ruby_pi/provider_registry"
+require_relative "ruby_pi/model_registry"
+require_relative "ruby_pi/http/client"
+require_relative "ruby_pi/http/sse_parser"
+require_relative "ruby_pi/auth"
+require_relative "ruby_pi/providers"
+require_relative "ruby_pi/models/defaults"
+require_relative "ruby_pi/message_transformer"
+require_relative "ruby_pi/agent_loop"
+require_relative "ruby_pi/agent"
 
-module Rpi
+module RubyPi
   class << self
     def providers
       @providers ||= ProviderRegistry.new
@@ -54,5 +60,13 @@ module Rpi
         **options
       )
     end
+
+    def bootstrap!
+      Providers.register_builtins(providers)
+      Models::Defaults.register(models)
+      self
+    end
   end
 end
+
+RubyPi.bootstrap!

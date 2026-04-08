@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Rpi
+module RubyPi
   module Messages
     ZERO_USAGE = {
       input: 0,
