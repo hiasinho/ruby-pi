@@ -133,7 +133,7 @@ Current test status from review:
   - Note:
     - validate enum values once after type coercion in `validate_schema` and added tests for integer enum coercion and single-error enum failures
 
-- [ ] P8 - Remove or integrate dead code in `lib/ruby_pi/message_transformer.rb`
+- [x] P8 - Remove or integrate dead code in `lib/ruby_pi/message_transformer.rb`
   - Problem:
     - file is required from `lib/ruby_pi.rb` but appears unused by `lib/` and `test/`
     - it overlaps with conversion logic in `lib/ruby_pi/providers/openai_completions.rb`
@@ -144,6 +144,8 @@ Current test status from review:
     - no dead require remains
     - behavior stays covered by tests
     - full test suite passes
+  - Note:
+    - removed the unused `message_transformer` require from `lib/ruby_pi.rb` and deleted the dead file after confirming nothing under `lib/` or `test/` referenced it
 
 ## Notes for the agent
 

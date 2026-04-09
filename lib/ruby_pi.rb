@@ -12,7 +12,6 @@ require_relative "ruby_pi/http/sse_parser"
 require_relative "ruby_pi/auth"
 require_relative "ruby_pi/providers"
 require_relative "ruby_pi/models/defaults"
-require_relative "ruby_pi/message_transformer"
 require_relative "ruby_pi/agent_loop"
 require_relative "ruby_pi/agent"
 
