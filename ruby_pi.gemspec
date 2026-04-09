@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "RubyPi is a lightweight Ruby agent runtime with tools, streaming, provider and model registries, and an OpenAI-compatible adapter."
   spec.homepage = "https://github.com/hiasinho/ruby-pi"
   spec.license = "0BSD"
-  spec.required_ruby_version = ">= 3.3"
+  spec.required_ruby_version = ">= 3.4"
 
   spec.metadata = {
     "documentation_uri" => "#{spec.homepage}/blob/main/README.md",

@@ -21,7 +21,6 @@ gem install ruby_pi
 
 Supported Ruby versions for this gem:
 
-- 3.3
 - 3.4
 - 4.0
 

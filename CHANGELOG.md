@@ -11,4 +11,5 @@
 - Added `Rakefile` tasks for test, build, and release
 - Added a checked-in pre-commit hook for secret scanning
 - Added GitHub Actions workflows for CI and release
+- Dropped Ruby 3.3 support
 - Added packaging smoke test
