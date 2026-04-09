@@ -52,7 +52,7 @@ Current test status from review:
   - Note:
     - re-checked cancellation after each streamed callback and updated streaming tests to parse SSE events without assuming transport chunk boundaries
 
-- [ ] P2 - Fix tool result normalization in `lib/ruby_pi/agent_loop.rb`
+- [x] P2 - Fix tool result normalization in `lib/ruby_pi/agent_loop.rb`
   - Problem:
     - `normalize_tool_result` only accepts hashes when `result[:content]` is already an array
     - common shapes like `{ content: "ok", details: {} }` or `{ "content" => "ok" }` are mangled
@@ -64,6 +64,8 @@ Current test status from review:
   - Acceptance:
     - add or update tests for string and hash-shaped tool results
     - full test suite passes
+  - Note:
+    - normalized symbol-keyed and string-keyed hash results through `Messages.normalize_user_content` and added agent tests for preserved details and default `{}` details
 
 - [ ] P3 - Stop swallowing queue callback errors in `lib/ruby_pi/agent_loop.rb`
   - Problem:

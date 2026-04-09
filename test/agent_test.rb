@@ -193,6 +193,39 @@ class AgentTest < Minitest::Test
     assert_equal({ overridden: true }, tool_result[:details])
   end
 
+  def test_tool_result_normalizes_hash_content_and_details
+    tool = RubyPi::Tool.define(name: "double", description: "Double a number") do |arguments, _cancellation|
+      {
+        content: (arguments["value"] * 2).to_s,
+        details: { doubled: arguments["value"] * 2 }
+      }
+    end
+
+    agent = build_agent(tool: tool)
+    agent.prompt("double 2")
+
+    tool_result = agent.messages.find { |message| message[:role] == :tool_result }
+    assert_equal "4", tool_result[:content].first[:text]
+    assert_equal({ doubled: 4 }, tool_result[:details])
+    assert_equal "Result: 4", agent.messages.last[:content].first[:text]
+  end
+
+  def test_tool_result_normalizes_string_key_hash_and_defaults_details
+    tool = RubyPi::Tool.define(name: "double", description: "Double a number") do |arguments, _cancellation|
+      {
+        "content" => (arguments["value"] * 2).to_s
+      }
+    end
+
+    agent = build_agent(tool: tool)
+    agent.prompt("double 3")
+
+    tool_result = agent.messages.find { |message| message[:role] == :tool_result }
+    assert_equal "6", tool_result[:content].first[:text]
+    assert_equal({}, tool_result[:details])
+    assert_equal "Result: 6", agent.messages.last[:content].first[:text]
+  end
+
   def test_reset_cancels_and_clears_active_run
     agent = build_agent
 

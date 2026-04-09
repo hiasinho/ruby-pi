@@ -473,11 +473,19 @@ module RubyPi
     end
 
     def normalize_tool_result(result)
-      return result if result.is_a?(Hash) && result[:content].is_a?(Array)
+      unless result.is_a?(Hash)
+        return {
+          content: Array(result).map { |item| item.is_a?(String) ? Messages.text(item) : Messages.deep_copy(item) },
+          details: {}
+        }
+      end
+
+      content = result.key?(:content) ? result[:content] : result["content"]
+      details = result.key?(:details) ? result[:details] : result["details"]
 
       {
-        content: Array(result).map { |item| item.is_a?(String) ? Messages.text(item) : Messages.deep_copy(item) },
-        details: {}
+        content: Messages.normalize_user_content(content.nil? ? [] : content),
+        details: details.nil? ? {} : Messages.deep_copy(details)
       }
     end
 
