@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+bundle install
+bundle exec ruby -e 'require "ruby_pi"; puts RubyPi::VERSION'
+./bin/test
+./bin/build

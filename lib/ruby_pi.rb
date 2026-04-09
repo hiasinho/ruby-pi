@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "ruby_pi/version"
 require_relative "ruby_pi/messages"
 require_relative "ruby_pi/cancellation"
 require_relative "ruby_pi/stream"

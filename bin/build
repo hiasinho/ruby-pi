@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+version="$(ruby -e 'require "./lib/ruby_pi/version"; print RubyPi::VERSION')"
+gem_file="ruby_pi-${version}.gem"
+
+mkdir -p pkg
+rm -f "pkg/${gem_file}"
+gem build ruby_pi.gemspec
+mv "${gem_file}" pkg/
+printf 'pkg/%s\n' "${gem_file}"

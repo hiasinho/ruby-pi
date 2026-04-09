@@ -11,7 +11,21 @@ It gives you:
 - a built-in OpenAI-compatible streaming adapter
 - low-level HTTP, SSE parsing, and stream primitives
 
-From the code in `lib/` and the tests in `test/`, RubyPi is designed as a lightweight agent runtime rather than a full framework. The core idea is:
+From the code in `lib/` and the tests in `test/`, RubyPi is designed as a lightweight agent runtime rather than a full framework.
+
+## Installation
+
+```bash
+gem install ruby_pi
+```
+
+Supported Ruby versions for this gem:
+
+- 3.3
+- 3.4
+- 4.0
+
+The core idea is:
 
 1. you create or select a model
 2. you define tools the model may call
@@ -85,13 +99,7 @@ Tests in `test/agent_test.rb` show that follow-up prompts can be queued while a 
 
 ## Quick start
 
-In this repository, tests load the library with:
-
-```ruby
-require_relative "lib/ruby_pi"
-```
-
-If RubyPi is packaged as a gem, the expected require would be:
+Require the gem with:
 
 ```ruby
 require "ruby_pi"
@@ -100,7 +108,7 @@ require "ruby_pi"
 Pick a registered model and create an agent:
 
 ```ruby
-require_relative "lib/ruby_pi"
+require "ruby_pi"
 
 model = RubyPi.models.fetch("openai", "openai/gpt-4o-mini")
 
@@ -121,7 +129,7 @@ puts agent.messages.last[:content].first[:text]
 Tools are first-class. Define them with `RubyPi::Tool.define`:
 
 ```ruby
-require_relative "lib/ruby_pi"
+require "ruby_pi"
 
 double = RubyPi::Tool.define(
   name: "double",
@@ -440,6 +448,23 @@ You can also use the lower-level building blocks directly:
 - `RubyPi::Http::SseParser` for SSE chunks
 - `RubyPi::Stream` for producer/consumer event streams
 
+## Development
+
+Install dependencies and run the local checks with:
+
+```bash
+./bin/ci
+```
+
+Or run the steps individually:
+
+```bash
+./bin/test
+./bin/build
+```
+
+`bin/build` writes the gem to `pkg/`.
+
 ## What the tests tell you about intended behavior
 
 The test suite is a good guide to the public contract.
@@ -452,7 +477,7 @@ The test suite is a good guide to the public contract.
 ## Minimal end-to-end example
 
 ```ruby
-require_relative "lib/ruby_pi"
+require "ruby_pi"
 
 tool = RubyPi::Tool.define(
   name: "double",
