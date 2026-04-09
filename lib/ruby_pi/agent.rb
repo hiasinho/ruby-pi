@@ -344,12 +344,10 @@ module RubyPi
         error_message: error.message
       )
 
-      @state_mutex.synchronize do
-        @messages << Messages.deep_copy(failure_message)
-        @last_error = failure_message[:error_message]
-      end
-
-      process_event(type: :agent_end, messages: [failure_message])
+      process_event(type: :message_start, message: Messages.deep_copy(failure_message))
+      process_event(type: :message_end, message: Messages.deep_copy(failure_message))
+      process_event(type: :turn_end, message: Messages.deep_copy(failure_message), tool_results: [])
+      process_event(type: :agent_end, messages: [Messages.deep_copy(failure_message)])
     end
 
     def finish_run

@@ -108,7 +108,7 @@ Current test status from review:
   - Note:
     - replaced per-call queue collection with thread values in parallel tool execution while keeping ordered results and the existing ordering test coverage
 
-- [ ] P6 - Make agent failure events consistent in `lib/ruby_pi/agent.rb`
+- [x] P6 - Make agent failure events consistent in `lib/ruby_pi/agent.rb`
   - Problem:
     - `handle_run_failure` mutates state directly and emits only `:agent_end`
     - subscribers do not see the normal message lifecycle for failure messages
@@ -118,6 +118,8 @@ Current test status from review:
   - Acceptance:
     - add or update tests for subscriber-visible failure events
     - full test suite passes
+  - Note:
+    - routed run failures through `:message_start`, `:message_end`, `:turn_end`, and `:agent_end` and added an agent test covering the subscriber-visible failure lifecycle
 
 - [ ] P7 - Remove duplicated enum validation logic in `lib/ruby_pi/schema_validator.rb`
   - Problem:

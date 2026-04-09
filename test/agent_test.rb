@@ -238,6 +238,29 @@ class AgentTest < Minitest::Test
     assert_empty agent.messages
     assert_nil agent.last_error
   end
+
+  def test_run_failure_emits_failure_message_lifecycle_events
+    agent = build_agent(
+      stream: lambda { |model:, context:, options:, cancellation:|
+        raise "stream failed"
+      }
+    )
+    events = []
+    agent.subscribe { |event, _token| events << event }
+
+    agent.prompt("hello")
+
+    failure_message = agent.messages.last
+    assert_equal :assistant, failure_message[:role]
+    assert_equal "stream failed", failure_message[:error_message]
+    assert_equal "stream failed", agent.last_error
+    assert_equal [:message_start, :message_end, :turn_end, :agent_end], events.last(4).map { |event| event[:type] }
+    assert_equal "stream failed", events[-4][:message][:error_message]
+    assert_equal "stream failed", events[-3][:message][:error_message]
+    assert_equal "stream failed", events[-2][:message][:error_message]
+    assert_equal [], events[-2][:tool_results]
+    assert_equal [failure_message], events[-1][:messages]
+  end
 end
 
 class OrderedParallelProvider
