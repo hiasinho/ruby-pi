@@ -22,6 +22,56 @@ class OpenAICompletionsAdapterTest < Minitest::Test
     ).merge(extra)
   end
 
+  def test_timeout_stays_local_and_whitelisted_stream_options_reach_payload
+    http_client = Class.new do
+      attr_reader :timeout, :json
+
+      def post_stream(url:, headers:, json:, timeout:, cancellation:)
+        @timeout = timeout
+        @json = json
+        yield "data: [DONE]\n\n"
+        { status: 200, headers: {}, body: "" }
+      end
+    end.new
+
+    model = RubyPi.model(
+      id: "test-model",
+      provider: "openai",
+      api: :openai_completions,
+      base_url: "http://example.test",
+      compat: {
+        max_tokens_field: "max_tokens",
+        supports_parallel_tool_calls: true,
+        requires_tool_result_name: false
+      }
+    )
+
+    adapter = RubyPi::Providers::OpenAICompletions.new(http_client: http_client)
+    stream = adapter.stream(
+      model: model,
+      context: {
+        system_prompt: "",
+        messages: [RubyPi::Messages.user("Hi")],
+        tools: []
+      },
+      options: {
+        api_key: "secret",
+        stream_options: {
+          timeout: 5,
+          include_usage: true,
+          ignored: "nope"
+        }
+      },
+      cancellation: RubyPi::Cancellation::Source.new.token
+    )
+
+    stream.to_a
+    stream.result
+
+    assert_equal 5, http_client.timeout
+    assert_equal({ include_usage: true }, http_client.json[:stream_options])
+  end
+
   def test_plain_text_stream_normalizes_events_and_usage
     @server = RawHttpServer.new do |socket, _request|
       RawHttpServer.write_chunked_response(

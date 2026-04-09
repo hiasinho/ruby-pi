@@ -117,7 +117,9 @@ module RubyPi
 
         payload[:metadata] = options[:metadata] if options[:metadata]
         payload[:user] = options[:session_id].to_s if options[:session_id]
-        payload[:stream_options] = options[:stream_options] if options[:stream_options]
+
+        stream_options = payload_stream_options(options)
+        payload[:stream_options] = stream_options if stream_options
         payload
       end
 
@@ -543,9 +545,20 @@ module RubyPi
 
       def request_timeout(options)
         stream_options = options[:stream_options]
-        return stream_options[:timeout] if stream_options.is_a?(Hash) && stream_options[:timeout]
+        timeout = value_at(stream_options, :timeout)
+        return timeout if timeout
 
         RubyPi::Http::Client::DEFAULT_TIMEOUT
+      end
+
+      def payload_stream_options(options)
+        stream_options = options[:stream_options]
+        return unless stream_options.is_a?(Hash)
+
+        include_usage = value_at(stream_options, :include_usage)
+        return if include_usage.nil?
+
+        { include_usage: include_usage }
       end
 
       def merge_headers!(target, headers)

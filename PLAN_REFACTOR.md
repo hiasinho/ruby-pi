@@ -80,7 +80,7 @@ Current test status from review:
   - Note:
     - let steering and follow-up callback exceptions surface from `safe_messages` and added agent loop tests for both failure paths
 
-- [ ] P4 - Split local transport options from provider payload options in `lib/ruby_pi/providers/openai_completions.rb`
+- [x] P4 - Split local transport options from provider payload options in `lib/ruby_pi/providers/openai_completions.rb`
   - Problem:
     - `options[:stream_options]` is used both for HTTP timeout handling and for upstream API payload fields
     - local options like `{ timeout: 5 }` can leak into the provider request body
@@ -90,6 +90,8 @@ Current test status from review:
   - Acceptance:
     - add or update tests proving timeout stays local and does not leak into API payload unless explicitly intended
     - full test suite passes
+  - Note:
+    - kept `timeout` local to the HTTP client, whitelisted payload `stream_options` to `include_usage`, and added an adapter test covering both behaviors
 
 - [ ] P5 - Simplify parallel tool execution in `lib/ruby_pi/agent_loop.rb`
   - Problem:
