@@ -1,5 +1,7 @@
 # RubyPi
 
+[![CI](https://github.com/hiasinho/ruby-pi/actions/workflows/ci.yml/badge.svg)](https://github.com/hiasinho/ruby-pi/actions/workflows/ci.yml)
+
 RubyPi is a small Ruby library for building tool-using LLM agents.
 
 It gives you:
