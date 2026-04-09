@@ -67,7 +67,7 @@ Current test status from review:
   - Note:
     - normalized symbol-keyed and string-keyed hash results through `Messages.normalize_user_content` and added agent tests for preserved details and default `{}` details
 
-- [ ] P3 - Stop swallowing queue callback errors in `lib/ruby_pi/agent_loop.rb`
+- [x] P3 - Stop swallowing queue callback errors in `lib/ruby_pi/agent_loop.rb`
   - Problem:
     - `safe_messages` rescues `StandardError` and silently returns `[]`
     - bugs in steering or follow-up callbacks are hidden and messages can be dropped
@@ -77,6 +77,8 @@ Current test status from review:
   - Acceptance:
     - add or update tests covering callback failure behavior
     - full test suite passes
+  - Note:
+    - let steering and follow-up callback exceptions surface from `safe_messages` and added agent loop tests for both failure paths
 
 - [ ] P4 - Split local transport options from provider payload options in `lib/ruby_pi/providers/openai_completions.rb`
   - Problem:

@@ -336,3 +336,60 @@ class AgentParallelOrderingTest < Minitest::Test
     assert_equal ["ok", "missing"], tool_results.map { |message| message[:tool_name] }
   end
 end
+
+class AgentLoopCallbackFailureTest < Minitest::Test
+  def setup
+    @model = RubyPi.model(id: "fake-1", provider: "spec", api: :fake)
+  end
+
+  def test_run_raises_when_steering_callback_fails
+    error = assert_raises(RuntimeError) do
+      RubyPi::AgentLoop.run(
+        prompts: [RubyPi::Messages.user([RubyPi::Messages.text("hello")])],
+        context: { system_prompt: "", messages: [], tools: [] },
+        config: {
+          model: @model,
+          convert_to_llm: ->(messages) { messages },
+          get_steering_messages: -> { raise "steering failed" }
+        }
+      )
+    end
+
+    assert_equal "steering failed", error.message
+  end
+
+  def test_run_raises_when_follow_up_callback_fails
+    error = assert_raises(RuntimeError) do
+      RubyPi::AgentLoop.run(
+        prompts: [RubyPi::Messages.user([RubyPi::Messages.text("hello")])],
+        context: { system_prompt: "", messages: [], tools: [] },
+        config: {
+          model: @model,
+          convert_to_llm: ->(messages) { messages },
+          stream: method(:plain_answer_stream),
+          get_follow_up_messages: -> { raise "follow-up failed" }
+        }
+      )
+    end
+
+    assert_equal "follow-up failed", error.message
+  end
+
+  private
+
+  def plain_answer_stream(model:, context:, options:, cancellation:)
+    assistant = RubyPi::Messages.assistant(
+      content: [RubyPi::Messages.text("done")],
+      api: model[:api],
+      provider: model[:provider],
+      model: model[:id],
+      stop_reason: :stop
+    )
+
+    RubyPi::Stream.new.tap do |stream|
+      stream.push(type: :start, partial: assistant)
+      stream.push(type: :done, message: assistant)
+      stream.close(assistant)
+    end
+  end
+end

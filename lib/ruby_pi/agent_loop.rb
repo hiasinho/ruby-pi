@@ -507,8 +507,6 @@ module RubyPi
       return [] unless callback
 
       Array(callback.call).map { |message| Messages.deep_copy(message) }
-    rescue StandardError
-      []
     end
 
     def resolve_cancellation(cancellation)
