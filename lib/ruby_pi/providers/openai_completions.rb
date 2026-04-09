@@ -58,16 +58,29 @@ module RubyPi
             stream.push(type: :error, reason: :aborted, error: aborted)
             stream.close(aborted)
           rescue StandardError => error
-            failure = RubyPi::Messages.assistant(
-              content: [ RubyPi::Messages.text("") ],
-              api: model[:api],
-              provider: model[:provider],
-              model: model[:id],
-              stop_reason: :error,
-              error_message: error.message
-            )
-            stream.push(type: :error, reason: :error, error: failure)
-            stream.close(failure)
+            if cancellation.cancelled?
+              aborted = RubyPi::Messages.assistant(
+                content: [ RubyPi::Messages.text("") ],
+                api: model[:api],
+                provider: model[:provider],
+                model: model[:id],
+                stop_reason: :aborted,
+                error_message: cancellation.reason || error.message
+              )
+              stream.push(type: :error, reason: :aborted, error: aborted)
+              stream.close(aborted)
+            else
+              failure = RubyPi::Messages.assistant(
+                content: [ RubyPi::Messages.text("") ],
+                api: model[:api],
+                provider: model[:provider],
+                model: model[:id],
+                stop_reason: :error,
+                error_message: error.message
+              )
+              stream.push(type: :error, reason: :error, error: failure)
+              stream.close(failure)
+            end
           end
         end
 
