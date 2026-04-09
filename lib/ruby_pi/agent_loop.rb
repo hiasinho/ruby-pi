@@ -308,20 +308,14 @@ module RubyPi
         end
       end
 
-      running_calls = runnable_calls.map do |call|
-        queue = Queue.new
-        thread = Thread.new do
-          queue << execute_prepared_tool_call(call[:prepared])
-        end
-        call.merge(queue: queue, thread: thread)
+      runnable_calls.each do |call|
+        call[:thread] = Thread.new { execute_prepared_tool_call(call[:prepared]) }
       end
 
-      running_calls.each do |running|
-        executed = running[:queue].pop
-        running[:thread].join
-        outcomes[running[:index]] = {
-          prepared: running[:prepared],
-          executed: executed
+      runnable_calls.each do |call|
+        outcomes[call[:index]] = {
+          prepared: call[:prepared],
+          executed: call[:thread].value
         }
       end
 

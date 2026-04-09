@@ -93,7 +93,7 @@ Current test status from review:
   - Note:
     - kept `timeout` local to the HTTP client, whitelisted payload `stream_options` to `include_usage`, and added an adapter test covering both behaviors
 
-- [ ] P5 - Simplify parallel tool execution in `lib/ruby_pi/agent_loop.rb`
+- [x] P5 - Simplify parallel tool execution in `lib/ruby_pi/agent_loop.rb`
   - Problem:
     - parallel tool execution uses one thread plus one queue per tool call
     - this is more moving parts than needed
@@ -105,6 +105,8 @@ Current test status from review:
     - existing ordering behavior remains intact
     - tests still prove tool result order is preserved
     - full test suite passes
+  - Note:
+    - replaced per-call queue collection with thread values in parallel tool execution while keeping ordered results and the existing ordering test coverage
 
 - [ ] P6 - Make agent failure events consistent in `lib/ruby_pi/agent.rb`
   - Problem:
