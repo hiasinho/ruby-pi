@@ -459,11 +459,27 @@ Install dependencies and run the local checks with:
 Or run the steps individually:
 
 ```bash
-./bin/test
-./bin/build
+./bin/secrets
+bundle exec rake test
+bundle exec rake build
 ```
 
-`bin/build` writes the gem to `pkg/`.
+`rake build` writes the gem to `pkg/`.
+
+To enable the checked-in pre-commit hook locally:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+## CI and release
+
+GitHub Actions includes:
+
+- `CI` for secret scanning, test matrix, and gem build
+- `Release` for manual RubyGems publishing via Trusted Publishing
+
+The release workflow expects RubyGems Trusted Publishing to be configured for this repository before use.
 
 ## What the tests tell you about intended behavior
 

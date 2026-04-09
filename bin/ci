@@ -5,5 +5,6 @@ cd "$(dirname "$0")/.."
 
 bundle install
 bundle exec ruby -e 'require "ruby_pi"; puts RubyPi::VERSION'
-./bin/test
-./bin/build
+./bin/secrets
+bundle exec rake test
+bundle exec rake build
