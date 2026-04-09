@@ -14,14 +14,18 @@ permissions:
 jobs:
   secrets:
     runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: "8.30.1"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_ENABLE_COMMENTS: "false"
+      - name: Install gitleaks
+        run: |
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+      - run: ./bin/secrets
 
   test:
     runs-on: ubuntu-latest
@@ -38,7 +42,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - run: ./bin/test
+      - run: bundle exec rake test
 
   build:
     runs-on: ubuntu-latest
@@ -51,7 +55,7 @@ jobs:
         with:
           ruby-version: "4.0"
           bundler-cache: true
-      - run: ./bin/build
+      - run: bundle exec rake build
       - uses: actions/upload-artifact@v4
         with:
           name: ruby-pi-gem
