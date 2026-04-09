@@ -175,15 +175,20 @@ class OpenAICompletionsAdapterTest < Minitest::Test
   def test_cancellation_mid_stream_returns_aborted_message
     source = RubyPi::Cancellation::Source.new
     @server = RawHttpServer.new do |socket, _request|
-      RawHttpServer.write_chunked_response(
-        socket,
-        headers: { "Content-Type" => "text/event-stream" },
-        chunks: [
-          "data: #{JSON.generate(id: 'resp-3', choices: [{ delta: { content: 'Hello' }, finish_reason: nil }])}\n\n",
-          "data: #{JSON.generate(id: 'resp-3', choices: [{ delta: { content: ' later' }, finish_reason: 'stop' }])}\n\n"
-        ],
-        delay: 0.05
-      )
+      socket.write("HTTP/1.1 200 OK\r\n")
+      socket.write("Transfer-Encoding: chunked\r\n")
+      socket.write("Content-Type: text/event-stream\r\n")
+      socket.write("Connection: close\r\n")
+      socket.write("\r\n")
+
+      first_event = "data: #{JSON.generate(id: 'resp-3', choices: [{ delta: { content: 'Hello' }, finish_reason: nil }])}\n\n"
+      socket.write("#{first_event.bytesize.to_s(16)}\r\n#{first_event}\r\n")
+      socket.flush
+
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1
+      sleep 0.01 until source.cancelled? || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+    rescue Errno::EPIPE, IOError
+      nil
     end
 
     adapter = RubyPi::Providers::OpenAICompletions.new

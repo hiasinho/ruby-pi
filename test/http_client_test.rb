@@ -38,6 +38,8 @@ class HttpClientTest < Minitest::Test
 
   def test_post_stream_yields_chunks
     chunks = []
+    parser = RubyPi::Http::SseParser.new
+    events = []
     @server = RawHttpServer.new do |socket, _request|
       RawHttpServer.write_chunked_response(
         socket,
@@ -48,23 +50,31 @@ class HttpClientTest < Minitest::Test
 
     response = @client.post_stream(url: "#{@server.url}/chat/completions") do |chunk|
       chunks << chunk
+      events.concat(parser.feed(chunk))
     end
+    events.concat(parser.finish)
 
     assert_equal 200, response[:status]
-    assert_equal 2, chunks.length
-    assert_includes chunks.join, '[DONE]'
+    assert_operator chunks.length, :>=, 1
+    assert_equal [{ type: :message, data: '{"a":1}', json: { a: 1 } }, { type: :done, data: "[DONE]" }], events
   end
 
   def test_post_stream_raises_when_cancelled_mid_stream
     source = RubyPi::Cancellation::Source.new
     seen_chunks = []
     @server = RawHttpServer.new do |socket, _request|
-      RawHttpServer.write_chunked_response(
-        socket,
-        headers: { "Content-Type" => "text/event-stream" },
-        chunks: ["first", "second"],
-        delay: 0.05
-      )
+      socket.write("HTTP/1.1 200 OK\r\n")
+      socket.write("Transfer-Encoding: chunked\r\n")
+      socket.write("Content-Type: text/event-stream\r\n")
+      socket.write("Connection: close\r\n")
+      socket.write("\r\n")
+      socket.write("5\r\nfirst\r\n")
+      socket.flush
+
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1
+      sleep 0.01 until source.cancelled? || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+    rescue Errno::EPIPE, IOError
+      nil
     end
 
     error = assert_raises(RubyPi::Cancellation::Cancelled) do

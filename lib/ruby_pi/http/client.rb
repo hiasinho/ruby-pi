@@ -77,7 +77,10 @@ module RubyPi
         response.read_body do |chunk|
           cancellation&.raise_if_cancelled!
           response_body << chunk
-          yield chunk if block_given?
+          next unless block_given?
+
+          yield chunk
+          cancellation&.raise_if_cancelled!
         end
       rescue *CANCELLATION_SOCKET_ERRORS, Net::ReadTimeout => error
         raise_cancelled_if_needed!(cancellation, error)
