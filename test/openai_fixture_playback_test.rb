@@ -29,8 +29,8 @@ class OpenAIFixturePlaybackTest < Minitest::Test
       model: playback_model,
       context: {
         system_prompt: "Use tools when a suitable tool exists. Return only tool calls when using a tool.",
-        messages: [RubyPi::Messages.user("Use the double tool for 21. Do not answer directly.")],
-        tools: [double_tool_schema]
+        messages: [ RubyPi::Messages.user("Use the double tool for 21. Do not answer directly.") ],
+        tools: [ double_tool_schema ]
       },
       options: { api_key: "fixture" },
       cancellation: RubyPi::Cancellation::Source.new.token
@@ -62,7 +62,7 @@ class OpenAIFixturePlaybackTest < Minitest::Test
         properties: {
           value: { type: "integer" }
         },
-        required: ["value"],
+        required: [ "value" ],
         additionalProperties: false
       }
     }

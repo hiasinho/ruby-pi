@@ -14,7 +14,7 @@ module RubyPi
             api: :openai_completions,
             base_url: "https://api.openai.com/v1",
             reasoning: true,
-            input: ["text", "image"],
+            input: [ "text", "image" ],
             compat: {
               max_tokens_field: "max_completion_tokens",
               supports_parallel_tool_calls: true,
@@ -30,7 +30,7 @@ module RubyPi
             api: :openai_completions,
             base_url: "https://api.openai.com/v1",
             reasoning: true,
-            input: ["text", "image"],
+            input: [ "text", "image" ],
             compat: {
               max_tokens_field: "max_completion_tokens",
               supports_parallel_tool_calls: true,
@@ -45,7 +45,7 @@ module RubyPi
             provider: "openai",
             api: :openai_completions,
             base_url: "https://api.openai.com/v1",
-            input: ["text", "image"],
+            input: [ "text", "image" ],
             compat: {
               max_tokens_field: "max_tokens",
               supports_parallel_tool_calls: true,
@@ -60,7 +60,7 @@ module RubyPi
             provider: "openrouter",
             api: :openai_completions,
             base_url: "https://openrouter.ai/api/v1",
-            input: ["text", "image"],
+            input: [ "text", "image" ],
             compat: {
               max_tokens_field: "max_tokens",
               supports_parallel_tool_calls: true,
@@ -75,7 +75,7 @@ module RubyPi
             provider: "groq",
             api: :openai_completions,
             base_url: "https://api.groq.com/openai/v1",
-            input: ["text"],
+            input: [ "text" ],
             compat: {
               max_tokens_field: "max_tokens",
               supports_parallel_tool_calls: true,
@@ -90,7 +90,7 @@ module RubyPi
             provider: "local",
             api: :openai_completions,
             base_url: "http://localhost:11434/v1",
-            input: ["text", "image"],
+            input: [ "text", "image" ],
             compat: {
               max_tokens_field: "max_tokens",
               supports_parallel_tool_calls: true,

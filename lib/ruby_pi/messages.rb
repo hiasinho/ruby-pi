@@ -62,11 +62,11 @@ module RubyPi
     def normalize_user_content(content)
       case content
       when String
-        [text(content)]
+        [ text(content) ]
       when Array
         content.map { |item| item.is_a?(String) ? text(item) : deep_copy(item) }
       else
-        [deep_copy(content)]
+        [ deep_copy(content) ]
       end
     end
 

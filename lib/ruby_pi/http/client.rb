@@ -9,7 +9,7 @@ module RubyPi
     class Client
       DEFAULT_TIMEOUT = 120
       CANCELLATION_POLL_INTERVAL = 0.05
-      CANCELLATION_SOCKET_ERRORS = [IOError, EOFError, Errno::EBADF, Errno::ECONNRESET, Errno::EPIPE, SocketError].freeze
+      CANCELLATION_SOCKET_ERRORS = [ IOError, EOFError, Errno::EBADF, Errno::ECONNRESET, Errno::EPIPE, SocketError ].freeze
 
       def post(url:, headers: {}, json: nil, body: nil, timeout: DEFAULT_TIMEOUT, cancellation: nil)
         request(url: url, headers: headers, json: json, body: body, timeout: timeout, cancellation: cancellation)

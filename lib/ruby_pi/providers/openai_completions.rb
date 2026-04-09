@@ -48,7 +48,7 @@ module RubyPi
             stream.close(final_message)
           rescue RubyPi::Cancellation::Cancelled => error
             aborted = RubyPi::Messages.assistant(
-              content: [RubyPi::Messages.text("")],
+              content: [ RubyPi::Messages.text("") ],
               api: model[:api],
               provider: model[:provider],
               model: model[:id],
@@ -59,7 +59,7 @@ module RubyPi
             stream.close(aborted)
           rescue StandardError => error
             failure = RubyPi::Messages.assistant(
-              content: [RubyPi::Messages.text("")],
+              content: [ RubyPi::Messages.text("") ],
               api: model[:api],
               provider: model[:provider],
               model: model[:id],
@@ -291,7 +291,7 @@ module RubyPi
       def handle_tool_call_delta(delta, state, model, stream)
         Array(delta[:tool_calls]).each do |tool_call_delta|
           index = (tool_call_delta[:index] || tool_call_count(state)).to_i
-          key = [:tool_call, index]
+          key = [ :tool_call, index ]
           part = ensure_tool_call_part(state, index)
           function = tool_call_delta[:function] || {}
 
@@ -409,7 +409,7 @@ module RubyPi
       end
 
       def ensure_tool_call_part(state, index)
-        ensure_content_part(state, [:tool_call, index]) do
+        ensure_content_part(state, [ :tool_call, index ]) do
           {
             type: :tool_call,
             index: index,

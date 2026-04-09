@@ -44,7 +44,7 @@ class HttpClientTest < Minitest::Test
       RawHttpServer.write_chunked_response(
         socket,
         headers: { "Content-Type" => "text/event-stream" },
-        chunks: ["data: {\"a\":1}\n\n", "data: [DONE]\n\n"]
+        chunks: [ "data: {\"a\":1}\n\n", "data: [DONE]\n\n" ]
       )
     end
 
@@ -56,7 +56,7 @@ class HttpClientTest < Minitest::Test
 
     assert_equal 200, response[:status]
     assert_operator chunks.length, :>=, 1
-    assert_equal [{ type: :message, data: '{"a":1}', json: { a: 1 } }, { type: :done, data: "[DONE]" }], events
+    assert_equal [ { type: :message, data: '{"a":1}', json: { a: 1 } }, { type: :done, data: "[DONE]" } ], events
   end
 
   def test_post_stream_raises_when_cancelled_mid_stream
@@ -88,7 +88,7 @@ class HttpClientTest < Minitest::Test
     end
 
     assert_equal "stop", error.message
-    assert_equal ["first"], seen_chunks
+    assert_equal [ "first" ], seen_chunks
   end
 
   def test_post_stream_checks_cancellation_while_waiting_for_next_chunk
@@ -97,7 +97,7 @@ class HttpClientTest < Minitest::Test
       RawHttpServer.write_chunked_response(
         socket,
         headers: { "Content-Type" => "text/event-stream" },
-        chunks: ["late chunk"],
+        chunks: [ "late chunk" ],
         delay: 0.5
       )
     end

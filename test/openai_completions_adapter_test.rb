@@ -51,7 +51,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
       model: model,
       context: {
         system_prompt: "",
-        messages: [RubyPi::Messages.user("Hi")],
+        messages: [ RubyPi::Messages.user("Hi") ],
         tools: []
       },
       options: {
@@ -78,8 +78,8 @@ class OpenAICompletionsAdapterTest < Minitest::Test
         socket,
         headers: { "Content-Type" => "text/event-stream" },
         chunks: [
-          "data: #{JSON.generate(id: 'resp-1', choices: [{ delta: { content: 'Hello ' }, finish_reason: nil }])}\n\n",
-          "data: #{JSON.generate(id: 'resp-1', choices: [{ delta: { content: 'world' }, finish_reason: 'stop' }], usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 })}\n\n",
+          "data: #{JSON.generate(id: 'resp-1', choices: [ { delta: { content: 'Hello ' }, finish_reason: nil } ])}\n\n",
+          "data: #{JSON.generate(id: 'resp-1', choices: [ { delta: { content: 'world' }, finish_reason: 'stop' } ], usage: { prompt_tokens: 5, completion_tokens: 2, total_tokens: 7 })}\n\n",
           "data: [DONE]\n\n"
         ]
       )
@@ -90,7 +90,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
       model: build_model,
       context: {
         system_prompt: "You are helpful.",
-        messages: [RubyPi::Messages.user("Hi")],
+        messages: [ RubyPi::Messages.user("Hi") ],
         tools: []
       },
       options: { api_key: "secret" },
@@ -119,8 +119,8 @@ class OpenAICompletionsAdapterTest < Minitest::Test
         socket,
         headers: { "Content-Type" => "text/event-stream" },
         chunks: [
-          "data: #{JSON.generate(id: 'resp-2', choices: [{ delta: { tool_calls: [{ index: 0, id: 'call-1', function: { name: 'double', arguments: '{"value"' } }] }, finish_reason: nil }])}\n\n",
-          "data: #{JSON.generate(id: 'resp-2', choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: ':21}' } }] }, finish_reason: 'tool_calls' }])}\n\n",
+          "data: #{JSON.generate(id: 'resp-2', choices: [ { delta: { tool_calls: [ { index: 0, id: 'call-1', function: { name: 'double', arguments: '{"value"' } } ] }, finish_reason: nil } ])}\n\n",
+          "data: #{JSON.generate(id: 'resp-2', choices: [ { delta: { tool_calls: [ { index: 0, function: { arguments: ':21}' } } ] }, finish_reason: 'tool_calls' } ])}\n\n",
           "data: [DONE]\n\n"
         ]
       )
@@ -131,7 +131,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
       model: build_model,
       context: {
         system_prompt: "",
-        messages: [RubyPi::Messages.user("double 21")],
+        messages: [ RubyPi::Messages.user("double 21") ],
         tools: [
           {
             name: "double",
@@ -141,7 +141,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
               properties: {
                 value: { type: "integer" }
               },
-              required: ["value"]
+              required: [ "value" ]
             }
           }
         ]
@@ -177,7 +177,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
     adapter = RubyPi::Providers::OpenAICompletions.new
     stream = adapter.stream(
       model: build_model,
-      context: { system_prompt: "", messages: [RubyPi::Messages.user("Hi")], tools: [] },
+      context: { system_prompt: "", messages: [ RubyPi::Messages.user("Hi") ], tools: [] },
       options: { api_key: "bad" },
       cancellation: RubyPi::Cancellation::Source.new.token
     )
@@ -197,8 +197,8 @@ class OpenAICompletionsAdapterTest < Minitest::Test
         socket,
         headers: { "Content-Type" => "text/event-stream" },
         chunks: [
-          "data: #{JSON.generate(id: 'resp-4', choices: [{ delta: { tool_calls: [{ index: 0, id: 'call-1', function: { name: 'lookup', arguments: '{}' } }] }, finish_reason: nil }])}\n\n",
-          "data: #{JSON.generate(id: 'resp-4', choices: [{ delta: { content: 'done' }, finish_reason: 'stop' }])}\n\n",
+          "data: #{JSON.generate(id: 'resp-4', choices: [ { delta: { tool_calls: [ { index: 0, id: 'call-1', function: { name: 'lookup', arguments: '{}' } } ] }, finish_reason: nil } ])}\n\n",
+          "data: #{JSON.generate(id: 'resp-4', choices: [ { delta: { content: 'done' }, finish_reason: 'stop' } ])}\n\n",
           "data: [DONE]\n\n"
         ]
       )
@@ -207,7 +207,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
     adapter = RubyPi::Providers::OpenAICompletions.new
     stream = adapter.stream(
       model: build_model,
-      context: { system_prompt: "", messages: [RubyPi::Messages.user("Hi")], tools: [] },
+      context: { system_prompt: "", messages: [ RubyPi::Messages.user("Hi") ], tools: [] },
       options: { api_key: "secret" },
       cancellation: RubyPi::Cancellation::Source.new.token
     )
@@ -215,7 +215,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
     events = stream.to_a
     result = stream.result
 
-    assert_equal [:tool_call, :text], result[:content].map { |part| part[:type] }
+    assert_equal [ :tool_call, :text ], result[:content].map { |part| part[:type] }
     tool_start = events.find { |event| event[:type] == :tool_call_start }
     text_start = events.find { |event| event[:type] == :text_start }
     assert_equal 0, tool_start[:content_index]
@@ -231,7 +231,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
       socket.write("Connection: close\r\n")
       socket.write("\r\n")
 
-      first_event = "data: #{JSON.generate(id: 'resp-3', choices: [{ delta: { content: 'Hello' }, finish_reason: nil }])}\n\n"
+      first_event = "data: #{JSON.generate(id: 'resp-3', choices: [ { delta: { content: 'Hello' }, finish_reason: nil } ])}\n\n"
       socket.write("#{first_event.bytesize.to_s(16)}\r\n#{first_event}\r\n")
       socket.flush
 
@@ -244,7 +244,7 @@ class OpenAICompletionsAdapterTest < Minitest::Test
     adapter = RubyPi::Providers::OpenAICompletions.new
     stream = adapter.stream(
       model: build_model,
-      context: { system_prompt: "", messages: [RubyPi::Messages.user("Hi")], tools: [] },
+      context: { system_prompt: "", messages: [ RubyPi::Messages.user("Hi") ], tools: [] },
       options: { api_key: "secret" },
       cancellation: source.token
     )
@@ -270,13 +270,13 @@ class OpenAICompletionsAgentIntegrationTest < Minitest::Test
       if last_message["role"] == "user"
         value = last_message["content"].to_s[/double\s+(\d+)/, 1].to_i
         chunks = [
-          "data: #{JSON.generate(id: 'resp-tool', choices: [{ delta: { tool_calls: [{ index: 0, id: "call-#{value}", function: { name: 'double', arguments: JSON.generate(value: value) } }] }, finish_reason: 'tool_calls' }])}\n\n",
+          "data: #{JSON.generate(id: 'resp-tool', choices: [ { delta: { tool_calls: [ { index: 0, id: "call-#{value}", function: { name: 'double', arguments: JSON.generate(value: value) } } ] }, finish_reason: 'tool_calls' } ])}\n\n",
           "data: [DONE]\n\n"
         ]
       else
         tool_result = last_message["content"]
         chunks = [
-          "data: #{JSON.generate(id: 'resp-answer', choices: [{ delta: { content: "Result: #{tool_result}" }, finish_reason: 'stop' }], usage: { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7 })}\n\n",
+          "data: #{JSON.generate(id: 'resp-answer', choices: [ { delta: { content: "Result: #{tool_result}" }, finish_reason: 'stop' } ], usage: { prompt_tokens: 4, completion_tokens: 3, total_tokens: 7 })}\n\n",
           "data: [DONE]\n\n"
         ]
       end
@@ -316,13 +316,13 @@ class OpenAICompletionsAgentIntegrationTest < Minitest::Test
         properties: {
           value: { type: "integer" }
         },
-        required: ["value"],
+        required: [ "value" ],
         additionalProperties: false
       }
     ) do |arguments, _cancellation|
       sleep 0.05
       {
-        content: [RubyPi::Messages.text((arguments["value"] * 2).to_s)],
+        content: [ RubyPi::Messages.text((arguments["value"] * 2).to_s) ],
         details: {}
       }
     end
@@ -330,7 +330,7 @@ class OpenAICompletionsAgentIntegrationTest < Minitest::Test
     agent = RubyPi::Agent.new(
       model: @model,
       system_prompt: "You are helpful.",
-      tools: [tool],
+      tools: [ tool ],
       provider_registry: @registry,
       api_key: "secret"
     )
@@ -346,6 +346,6 @@ class OpenAICompletionsAgentIntegrationTest < Minitest::Test
 
     first_request = @requests.pop
     assert_equal "system", first_request[:json]["messages"].first["role"]
-    assert_equal ["Result: 8", "Result: 10"], assistant_texts.map { |message| message[:content].first[:text] }
+    assert_equal [ "Result: 8", "Result: 10" ], assistant_texts.map { |message| message[:content].first[:text] }
   end
 end

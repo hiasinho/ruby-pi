@@ -31,7 +31,7 @@ module RubyPi
             @messages = []
             drained
           else
-            [@messages.shift]
+            [ @messages.shift ]
           end
         end
       end
@@ -336,7 +336,7 @@ module RubyPi
 
     def handle_run_failure(error, token)
       failure_message = Messages.assistant(
-        content: [Messages.text("")],
+        content: [ Messages.text("") ],
         api: @model[:api],
         provider: @model[:provider],
         model: @model[:id],
@@ -347,7 +347,7 @@ module RubyPi
       process_event(type: :message_start, message: Messages.deep_copy(failure_message))
       process_event(type: :message_end, message: Messages.deep_copy(failure_message))
       process_event(type: :turn_end, message: Messages.deep_copy(failure_message), tool_results: [])
-      process_event(type: :agent_end, messages: [Messages.deep_copy(failure_message)])
+      process_event(type: :agent_end, messages: [ Messages.deep_copy(failure_message) ])
     end
 
     def finish_run
@@ -360,17 +360,17 @@ module RubyPi
 
     def default_convert_to_llm(messages)
       messages.select do |message|
-        [:user, :assistant, :tool_result].include?(message[:role].to_sym)
+        [ :user, :assistant, :tool_result ].include?(message[:role].to_sym)
       end
     end
 
     def normalize_prompt_input(input, images: [])
       return input.map { |message| Messages.deep_copy(message) } if input.is_a?(Array)
-      return [Messages.deep_copy(input)] if input.is_a?(Hash)
+      return [ Messages.deep_copy(input) ] if input.is_a?(Hash)
 
-      content = [Messages.text(input.to_s)]
+      content = [ Messages.text(input.to_s) ]
       Array(images).each { |image| content << Messages.deep_copy(image) }
-      [Messages.user(content)]
+      [ Messages.user(content) ]
     end
   end
 end

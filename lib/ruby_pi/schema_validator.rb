@@ -23,7 +23,7 @@ module RubyPi
 
       if schema.key?(:const) && value != schema[:const]
         errors << "#{path} must equal #{schema[:const].inspect}"
-        return [value, errors]
+        return [ value, errors ]
       end
 
       coerced, errors = case schema[:type].to_s
@@ -32,23 +32,23 @@ module RubyPi
       when "array"
         validate_array(schema, value, path, errors)
       when ""
-        [value, errors]
+        [ value, errors ]
       else
         validate_scalar(schema, value, path, errors)
       end
 
-      return [coerced, errors] unless schema.key?(:enum)
+      return [ coerced, errors ] unless schema.key?(:enum)
 
       coerced = coerce_enum(schema[:enum], coerced)
       errors << "#{path} must be one of #{schema[:enum].map(&:inspect).join(', ')}" unless schema[:enum].include?(coerced)
 
-      [coerced, errors]
+      [ coerced, errors ]
     end
 
     def validate_object(schema, value, path, errors)
       unless value.is_a?(Hash)
         errors << "#{path} must be an object"
-        return [value, errors]
+        return [ value, errors ]
       end
 
       properties = symbolize_keys(schema[:properties] || {})
@@ -75,17 +75,17 @@ module RubyPi
         errors << "#{path}.#{required_key} is required" unless has_key
       end
 
-      [coerced, errors]
+      [ coerced, errors ]
     end
 
     def validate_array(schema, value, path, errors)
       unless value.is_a?(Array)
         errors << "#{path} must be an array"
-        return [value, errors]
+        return [ value, errors ]
       end
 
       item_schema = schema[:items]
-      return [value, errors] unless item_schema
+      return [ value, errors ] unless item_schema
 
       coerced = value.each_with_index.map do |item, index|
         next_value, child_errors = validate_schema(item_schema, item, "#{path}[#{index}]")
@@ -93,7 +93,7 @@ module RubyPi
         next_value
       end
 
-      [coerced, errors]
+      [ coerced, errors ]
     end
 
     def validate_scalar(schema, value, path, errors)
@@ -110,7 +110,7 @@ module RubyPi
         errors << "#{path} must be a boolean" unless coerced == true || coerced == false
       end
 
-      [coerced, errors]
+      [ coerced, errors ]
     end
 
     def coerce_type(type, value)

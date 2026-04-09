@@ -11,14 +11,14 @@ module RubyPi
 
     def register(model)
       normalized = normalize_model(model)
-      key = [normalized[:provider].to_s, normalized[:id].to_s]
+      key = [ normalized[:provider].to_s, normalized[:id].to_s ]
       @mutex.synchronize { @models[key] = normalized }
       normalized
     end
 
     def fetch(provider, id)
       @mutex.synchronize do
-        @models.fetch([provider.to_s, id.to_s]) do
+        @models.fetch([ provider.to_s, id.to_s ]) do
           raise KeyError, "No model registered for provider=#{provider} id=#{id}"
         end
       end

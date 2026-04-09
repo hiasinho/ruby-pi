@@ -461,6 +461,7 @@ Or run the steps individually:
 
 ```bash
 ./bin/secrets
+bundle exec rubocop
 bundle exec rake test
 bundle exec rake build
 ```
@@ -477,7 +478,7 @@ git config core.hooksPath .githooks
 
 GitHub Actions includes:
 
-- `CI` for secret scanning, test matrix, and gem build
+- `CI` for secret scanning, RuboCop, test matrix, and gem build
 - `Release` for manual RubyGems publishing via Trusted Publishing
 
 The release workflow expects RubyGems Trusted Publishing to be configured for this repository before use.

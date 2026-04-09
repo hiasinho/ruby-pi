@@ -34,7 +34,7 @@ module RubyPi
       models.register(model)
     end
 
-    def model(id:, provider:, api:, name: nil, base_url: nil, reasoning: false, input: ["text"], cost: nil, context_window: 0, max_tokens: 0, headers: nil, **extra)
+    def model(id:, provider:, api:, name: nil, base_url: nil, reasoning: false, input: [ "text" ], cost: nil, context_window: 0, max_tokens: 0, headers: nil, **extra)
       {
         id: id,
         name: name || id,

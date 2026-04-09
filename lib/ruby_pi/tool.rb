@@ -40,7 +40,7 @@ module RubyPi
 
         unless @executor.parameters.any? { |kind, _| kind == :keyrest }
           allowed_keywords = @executor.parameters.filter_map do |kind, name|
-            name if [:key, :keyreq].include?(kind)
+            name if [ :key, :keyreq ].include?(kind)
           end
           kwargs.select! { |key, _| allowed_keywords.include?(key) }
         end
@@ -73,7 +73,7 @@ module RubyPi
     private
 
     def keyword_executor?
-      @executor.parameters.any? { |kind, _| [:key, :keyreq, :keyrest].include?(kind) }
+      @executor.parameters.any? { |kind, _| [ :key, :keyreq, :keyrest ].include?(kind) }
     end
   end
 end

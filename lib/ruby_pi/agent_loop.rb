@@ -40,15 +40,15 @@ module RubyPi
           stream.close(messages)
         rescue StandardError => error
           error_message = Messages.assistant(
-            content: [Messages.text("")],
+            content: [ Messages.text("") ],
             api: config.fetch(:model).fetch(:api),
             provider: config.fetch(:model).fetch(:provider),
             model: config.fetch(:model).fetch(:id),
             stop_reason: :error,
             error_message: error.message
           )
-          stream.push(type: :agent_end, messages: [error_message])
-          stream.close([error_message])
+          stream.push(type: :agent_end, messages: [ error_message ])
+          stream.close([ error_message ])
         end
         stream
       end
@@ -61,7 +61,7 @@ module RubyPi
         tools: Array(context[:tools])
       }
       @config = config
-      @emitter = emitter || ->(_event) {}
+      @emitter = emitter || ->(_event) { }
       @emit_mutex = Mutex.new
       @provider_registry = config[:provider_registry] || RubyPi.providers
       @cancellation = resolve_cancellation(cancellation)
@@ -135,7 +135,7 @@ module RubyPi
           assistant_message = stream_assistant_response(current_context)
           new_messages << Messages.deep_copy(assistant_message)
 
-          if [:error, :aborted].include?(assistant_message[:stop_reason].to_sym)
+          if [ :error, :aborted ].include?(assistant_message[:stop_reason].to_sym)
             emit(type: :turn_end, message: Messages.deep_copy(assistant_message), tool_results: [])
             emit(type: :agent_end, messages: new_messages.map { |message| Messages.deep_copy(message) })
             return
@@ -439,7 +439,7 @@ module RubyPi
 
     def create_error_tool_result(message)
       {
-        content: [Messages.text(message)],
+        content: [ Messages.text(message) ],
         details: {}
       }
     end

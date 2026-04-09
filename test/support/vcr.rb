@@ -52,7 +52,7 @@ module RubyPi
       end
 
       def latest_response_body(name)
-        cassette = YAML.safe_load_file(cassette_path(name), permitted_classes: [Time], aliases: true) || {}
+        cassette = YAML.safe_load_file(cassette_path(name), permitted_classes: [ Time ], aliases: true) || {}
         interactions = Array(cassette["http_interactions"])
         interactions.reverse_each do |interaction|
           body = interaction.dig("response", "body", "string")

@@ -21,7 +21,7 @@ class FakeProvider
         end
       rescue RubyPi::Cancellation::Cancelled => error
         aborted = RubyPi::Messages.assistant(
-          content: [RubyPi::Messages.text("")],
+          content: [ RubyPi::Messages.text("") ],
           api: model[:api],
           provider: model[:provider],
           model: model[:id],
@@ -43,7 +43,7 @@ class FakeProvider
     value = text[/double\s+(\d+)/, 1].to_i
     tool_call = RubyPi::Messages.tool_call(id: "call-#{value}", name: "double", arguments: { "value" => value })
     assistant = RubyPi::Messages.assistant(
-      content: [tool_call],
+      content: [ tool_call ],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
@@ -60,14 +60,14 @@ class FakeProvider
   def emit_final_answer(stream, model, tool_result)
     final_text = "Result: #{tool_result[:content].first[:text]}"
     partial = RubyPi::Messages.assistant(
-      content: [RubyPi::Messages.text("")],
+      content: [ RubyPi::Messages.text("") ],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
       stop_reason: :stop
     )
     final = RubyPi::Messages.assistant(
-      content: [RubyPi::Messages.text(final_text)],
+      content: [ RubyPi::Messages.text(final_text) ],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
@@ -82,7 +82,7 @@ class FakeProvider
 
   def emit_plain_answer(stream, model, text)
     final = RubyPi::Messages.assistant(
-      content: [RubyPi::Messages.text(text)],
+      content: [ RubyPi::Messages.text(text) ],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
@@ -106,7 +106,7 @@ class AgentTest < Minitest::Test
     RubyPi::Agent.new(
       model: @model,
       system_prompt: "You are helpful.",
-      tools: [tool],
+      tools: [ tool ],
       provider_registry: @registry,
       **options
     )
@@ -121,13 +121,13 @@ class AgentTest < Minitest::Test
         properties: {
           value: { type: "integer" }
         },
-        required: ["value"],
+        required: [ "value" ],
         additionalProperties: false
       }
     ) do |arguments, _cancellation|
       sleep 0.05
       {
-        content: [RubyPi::Messages.text((arguments["value"] * 2).to_s)],
+        content: [ RubyPi::Messages.text((arguments["value"] * 2).to_s) ],
         details: { doubled: arguments["value"] * 2 }
       }
     end
@@ -142,7 +142,7 @@ class AgentTest < Minitest::Test
 
     assert_equal false, agent.busy?
     assert_nil agent.last_error
-    assert_equal [:user, :assistant, :tool_result, :assistant], agent.messages.map { |message| message[:role] }
+    assert_equal [ :user, :assistant, :tool_result, :assistant ], agent.messages.map { |message| message[:role] }
     assert_equal "Result: 42", agent.messages.last[:content].first[:text]
     assert_includes events, :tool_execution_start
     assert_includes events, :tool_execution_end
@@ -160,7 +160,7 @@ class AgentTest < Minitest::Test
     agent.wait_until_idle
 
     assistant_texts = agent.messages.select { |message| message[:role] == :assistant && message[:content].first[:type] == :text }
-    assert_equal ["Result: 8", "Result: 10"], assistant_texts.map { |message| message[:content].first[:text] }
+    assert_equal [ "Result: 8", "Result: 10" ], assistant_texts.map { |message| message[:content].first[:text] }
   end
 
   def test_before_and_after_tool_hooks_are_applied
@@ -170,7 +170,7 @@ class AgentTest < Minitest::Test
       },
       after_tool_call: lambda { |_context, _token|
         {
-          content: [RubyPi::Messages.text("override")],
+          content: [ RubyPi::Messages.text("override") ],
           details: { overridden: true },
           is_error: false
         }
@@ -254,12 +254,12 @@ class AgentTest < Minitest::Test
     assert_equal :assistant, failure_message[:role]
     assert_equal "stream failed", failure_message[:error_message]
     assert_equal "stream failed", agent.last_error
-    assert_equal [:message_start, :message_end, :turn_end, :agent_end], events.last(4).map { |event| event[:type] }
+    assert_equal [ :message_start, :message_end, :turn_end, :agent_end ], events.last(4).map { |event| event[:type] }
     assert_equal "stream failed", events[-4][:message][:error_message]
     assert_equal "stream failed", events[-3][:message][:error_message]
     assert_equal "stream failed", events[-2][:message][:error_message]
     assert_equal [], events[-2][:tool_results]
-    assert_equal [failure_message], events[-1][:messages]
+    assert_equal [ failure_message ], events[-1][:messages]
   end
 end
 
@@ -284,7 +284,7 @@ class OrderedParallelProvider
         )
       else
         assistant = RubyPi::Messages.assistant(
-          content: [RubyPi::Messages.text("done")],
+          content: [ RubyPi::Messages.text("done") ],
           api: model[:api],
           provider: model[:provider],
           model: model[:id],
@@ -304,7 +304,7 @@ end
 class ToolTest < Minitest::Test
   def test_keyword_executor_accepts_subset_of_supported_keywords
     tool = RubyPi::Tool.define(name: "echo", description: "Echo args") do |arguments:|
-      { content: [RubyPi::Messages.text(arguments["value"])], details: {} }
+      { content: [ RubyPi::Messages.text(arguments["value"]) ], details: {} }
     end
 
     result = tool.call(
@@ -326,7 +326,7 @@ class SchemaValidatorTest < Minitest::Test
           properties: {
             query: { type: "string" }
           },
-          required: ["query"],
+          required: [ "query" ],
           additionalProperties: false
         },
         { "query" => { "bad" => 1 } }
@@ -338,7 +338,7 @@ class SchemaValidatorTest < Minitest::Test
 
   def test_enum_validation_runs_after_type_coercion
     result = RubyPi::SchemaValidator.validate!(
-      { type: "integer", enum: [1, 2] },
+      { type: "integer", enum: [ 1, 2 ] },
       2.0
     )
 
@@ -348,7 +348,7 @@ class SchemaValidatorTest < Minitest::Test
   def test_invalid_enum_only_adds_one_error
     error = assert_raises(RubyPi::SchemaValidator::ValidationError) do
       RubyPi::SchemaValidator.validate!(
-        { type: "string", enum: ["ok"] },
+        { type: "string", enum: [ "ok" ] },
         :bad
       )
     end
@@ -364,19 +364,19 @@ class AgentParallelOrderingTest < Minitest::Test
     model = RubyPi.model(id: "fake-1", provider: "spec", api: :fake)
     tool = RubyPi::Tool.define(name: "ok", description: "OK") do
       sleep 0.05
-      { content: [RubyPi::Messages.text("ok")], details: {} }
+      { content: [ RubyPi::Messages.text("ok") ], details: {} }
     end
 
     agent = RubyPi::Agent.new(
       model: model,
-      tools: [tool],
+      tools: [ tool ],
       provider_registry: registry
     )
 
     agent.prompt("run")
 
     tool_results = agent.messages.select { |message| message[:role] == :tool_result }
-    assert_equal ["ok", "missing"], tool_results.map { |message| message[:tool_name] }
+    assert_equal [ "ok", "missing" ], tool_results.map { |message| message[:tool_name] }
   end
 end
 
@@ -388,7 +388,7 @@ class AgentLoopCallbackFailureTest < Minitest::Test
   def test_run_raises_when_steering_callback_fails
     error = assert_raises(RuntimeError) do
       RubyPi::AgentLoop.run(
-        prompts: [RubyPi::Messages.user([RubyPi::Messages.text("hello")])],
+        prompts: [ RubyPi::Messages.user([ RubyPi::Messages.text("hello") ]) ],
         context: { system_prompt: "", messages: [], tools: [] },
         config: {
           model: @model,
@@ -404,7 +404,7 @@ class AgentLoopCallbackFailureTest < Minitest::Test
   def test_run_raises_when_follow_up_callback_fails
     error = assert_raises(RuntimeError) do
       RubyPi::AgentLoop.run(
-        prompts: [RubyPi::Messages.user([RubyPi::Messages.text("hello")])],
+        prompts: [ RubyPi::Messages.user([ RubyPi::Messages.text("hello") ]) ],
         context: { system_prompt: "", messages: [], tools: [] },
         config: {
           model: @model,
@@ -422,7 +422,7 @@ class AgentLoopCallbackFailureTest < Minitest::Test
 
   def plain_answer_stream(model:, context:, options:, cancellation:)
     assistant = RubyPi::Messages.assistant(
-      content: [RubyPi::Messages.text("done")],
+      content: [ RubyPi::Messages.text("done") ],
       api: model[:api],
       provider: model[:provider],
       model: model[:id],
