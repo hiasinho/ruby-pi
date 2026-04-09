@@ -8,7 +8,8 @@ module RubyPi
   module Http
     class Client
       DEFAULT_TIMEOUT = 120
-      READ_POLL_INTERVAL = 0.1
+      CANCELLATION_POLL_INTERVAL = 0.05
+      CANCELLATION_SOCKET_ERRORS = [IOError, EOFError, Errno::EBADF, Errno::ECONNRESET, Errno::EPIPE, SocketError].freeze
 
       def post(url:, headers: {}, json: nil, body: nil, timeout: DEFAULT_TIMEOUT, cancellation: nil)
         request(url: url, headers: headers, json: json, body: body, timeout: timeout, cancellation: cancellation)
@@ -32,27 +33,36 @@ module RubyPi
           uri.port,
           use_ssl: uri.scheme == "https",
           open_timeout: timeout,
-          read_timeout: read_timeout_for(timeout, streaming: streaming, cancellation: cancellation),
+          read_timeout: timeout,
           write_timeout: timeout
         ) do |http|
-          request = Net::HTTP::Post.new(uri)
-          normalize_headers(headers).each do |key, value|
-            request[key] = value
-          end
+          watcher = start_cancellation_watcher(http, cancellation, enabled: streaming)
 
-          if json
-            request["Content-Type"] ||= "application/json"
-            request.body = JSON.generate(json)
-          elsif body
-            request.body = body
-          end
+          begin
+            request = Net::HTTP::Post.new(uri)
+            normalize_headers(headers).each do |key, value|
+              request[key] = value
+            end
 
-          cancellation&.raise_if_cancelled!
+            if json
+              request["Content-Type"] ||= "application/json"
+              request.body = JSON.generate(json)
+            elsif body
+              request.body = body
+            end
 
-          http.request(request) do |response|
-            response_status = response.code.to_i
-            response_headers = response.each_header.to_h
-            read_response_body(response, response_body, timeout, cancellation, &block)
+            cancellation&.raise_if_cancelled!
+
+            http.request(request) do |response|
+              response_status = response.code.to_i
+              response_headers = response.each_header.to_h
+              read_response_body(response, response_body, cancellation, &block)
+            end
+          rescue *CANCELLATION_SOCKET_ERRORS, Net::ReadTimeout => error
+            raise_cancelled_if_needed!(cancellation, error)
+            raise
+          ensure
+            stop_cancellation_watcher(watcher)
           end
         end
 
@@ -63,32 +73,56 @@ module RubyPi
         }
       end
 
-      def read_response_body(response, response_body, timeout, cancellation)
-        last_activity_at = monotonic_now
-
-        begin
-          response.read_body do |chunk|
-            cancellation&.raise_if_cancelled!
-            last_activity_at = monotonic_now
-            response_body << chunk
-            yield chunk if block_given?
-          end
-        rescue Net::ReadTimeout
+      def read_response_body(response, response_body, cancellation)
+        response.read_body do |chunk|
           cancellation&.raise_if_cancelled!
-          raise if monotonic_now - last_activity_at >= timeout.to_f
+          response_body << chunk
+          yield chunk if block_given?
+        end
+      rescue *CANCELLATION_SOCKET_ERRORS, Net::ReadTimeout => error
+        raise_cancelled_if_needed!(cancellation, error)
+        raise
+      end
 
-          retry
+      def start_cancellation_watcher(http, cancellation, enabled:)
+        return nil unless enabled && cancellation
+
+        Thread.new do
+          Thread.current.report_on_exception = false
+
+          loop do
+            break unless http.active?
+            break unless cancellation
+
+            if cancellation.cancelled?
+              close_http_socket(http)
+              break
+            end
+
+            sleep CANCELLATION_POLL_INTERVAL
+          end
         end
       end
 
-      def read_timeout_for(timeout, streaming:, cancellation:)
-        return timeout unless streaming && cancellation
+      def stop_cancellation_watcher(watcher)
+        return unless watcher
 
-        [timeout.to_f, READ_POLL_INTERVAL].min
+        watcher.kill
+        watcher.join
       end
 
-      def monotonic_now
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      def close_http_socket(http)
+        socket = http.instance_variable_get(:@socket)
+        io = socket.respond_to?(:io) ? socket.io : socket
+        io&.close
+      rescue IOError, Errno::EBADF
+        nil
+      end
+
+      def raise_cancelled_if_needed!(cancellation, original_error)
+        return unless cancellation&.cancelled?
+
+        raise RubyPi::Cancellation::Cancelled, (cancellation.reason || original_error.message)
       end
 
       def normalize_headers(headers)

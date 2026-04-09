@@ -8,6 +8,38 @@ module RubyPi
       def all
         [
           RubyPi.model(
+            id: "openai/gpt-5.4",
+            name: "GPT-5.4",
+            provider: "openai",
+            api: :openai_completions,
+            base_url: "https://api.openai.com/v1",
+            reasoning: true,
+            input: ["text", "image"],
+            compat: {
+              max_tokens_field: "max_completion_tokens",
+              supports_parallel_tool_calls: true,
+              supports_reasoning_effort: true,
+              supports_store: false,
+              supports_developer_role: false
+            }
+          ),
+          RubyPi.model(
+            id: "openai/gpt-5.4-mini",
+            name: "GPT-5.4 mini",
+            provider: "openai",
+            api: :openai_completions,
+            base_url: "https://api.openai.com/v1",
+            reasoning: true,
+            input: ["text", "image"],
+            compat: {
+              max_tokens_field: "max_completion_tokens",
+              supports_parallel_tool_calls: true,
+              supports_reasoning_effort: true,
+              supports_store: false,
+              supports_developer_role: false
+            }
+          ),
+          RubyPi.model(
             id: "openai/gpt-4o-mini",
             name: "GPT-4o mini",
             provider: "openai",
