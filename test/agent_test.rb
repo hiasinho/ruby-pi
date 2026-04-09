@@ -335,6 +335,26 @@ class SchemaValidatorTest < Minitest::Test
 
     assert_includes error.message, "$.query must be a string"
   end
+
+  def test_enum_validation_runs_after_type_coercion
+    result = RubyPi::SchemaValidator.validate!(
+      { type: "integer", enum: [1, 2] },
+      2.0
+    )
+
+    assert_equal 2, result
+  end
+
+  def test_invalid_enum_only_adds_one_error
+    error = assert_raises(RubyPi::SchemaValidator::ValidationError) do
+      RubyPi::SchemaValidator.validate!(
+        { type: "string", enum: ["ok"] },
+        :bad
+      )
+    end
+
+    assert_equal 1, error.message.scan("$ must be one of \"ok\"").length
+  end
 end
 
 class AgentParallelOrderingTest < Minitest::Test

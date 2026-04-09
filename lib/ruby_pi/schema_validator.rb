@@ -26,22 +26,23 @@ module RubyPi
         return [value, errors]
       end
 
-      if schema.key?(:enum) && !schema[:enum].include?(value)
-        value = coerce_enum(schema[:enum], value)
-        errors << "#{path} must be one of #{schema[:enum].map(&:inspect).join(', ')}" unless schema[:enum].include?(value)
-      end
-
-      type = schema[:type]
-      return [value, errors] unless type
-
-      case type.to_s
+      coerced, errors = case schema[:type].to_s
       when "object"
         validate_object(schema, value, path, errors)
       when "array"
         validate_array(schema, value, path, errors)
+      when ""
+        [value, errors]
       else
         validate_scalar(schema, value, path, errors)
       end
+
+      return [coerced, errors] unless schema.key?(:enum)
+
+      coerced = coerce_enum(schema[:enum], coerced)
+      errors << "#{path} must be one of #{schema[:enum].map(&:inspect).join(', ')}" unless schema[:enum].include?(coerced)
+
+      [coerced, errors]
     end
 
     def validate_object(schema, value, path, errors)
@@ -107,10 +108,6 @@ module RubyPi
         errors << "#{path} must be a number" unless coerced.is_a?(Numeric)
       when "boolean"
         errors << "#{path} must be a boolean" unless coerced == true || coerced == false
-      end
-
-      if schema.key?(:enum) && !schema[:enum].include?(coerced)
-        errors << "#{path} must be one of #{schema[:enum].map(&:inspect).join(', ')}"
       end
 
       [coerced, errors]

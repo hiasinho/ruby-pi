@@ -121,7 +121,7 @@ Current test status from review:
   - Note:
     - routed run failures through `:message_start`, `:message_end`, `:turn_end`, and `:agent_end` and added an agent test covering the subscriber-visible failure lifecycle
 
-- [ ] P7 - Remove duplicated enum validation logic in `lib/ruby_pi/schema_validator.rb`
+- [x] P7 - Remove duplicated enum validation logic in `lib/ruby_pi/schema_validator.rb`
   - Problem:
     - enum validation happens once in `validate_schema` and again in `validate_scalar`
     - this increases complexity and can duplicate errors
@@ -130,6 +130,8 @@ Current test status from review:
   - Acceptance:
     - add or update tests for enum validation and coercion
     - full test suite passes
+  - Note:
+    - validate enum values once after type coercion in `validate_schema` and added tests for integer enum coercion and single-error enum failures
 
 - [ ] P8 - Remove or integrate dead code in `lib/ruby_pi/message_transformer.rb`
   - Problem:
